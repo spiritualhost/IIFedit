@@ -1,0 +1,81 @@
+import pandas as pd
+from tkinter import *
+import os
+from iif_import import *
+
+# Current working directory
+cwd = os.getcwd()
+
+# Window setup
+editIIF = Tk()
+
+# Acting on the IIF
+df = pd.read_csv("SIcash12092024.iif", sep='\\s+')
+myIIF = pd.DataFrame(df)
+
+# Extract headers and data
+headers = list(myIIF)
+numColumns = len(myIIF.loc[0])
+numRows = myIIF.shape[0] + 1
+
+# Dictionary of IIF data
+iifIndexed = {}
+for names in headers:
+    temp = []
+    for items in myIIF[names]:
+        temp.append(items)
+    iifIndexed[names] = temp
+
+# Tkinter grid window setup
+editIIF.title("Edit IIF")
+editIIF.geometry("1040x600")
+editIIF.configure(background="blanched almond")
+
+# Dictionary to store entry widgets
+entry_widgets = {}
+
+# Function to fill the screen with editable text fields
+def iifFill(window, iifHash: dict):
+    i = 1  # x-coordinate in grid
+    j = 0  # y-coordinate in grid
+
+    for keys in list(iifHash.keys()):
+        header = Label(window, text=f"{keys}", bg="blanched almond", font=("Arial", 10, "bold"))
+        header.grid(row=j, column=i, padx=10, pady=5)
+        j += 1
+        for values in iifHash[keys]:
+            entry = Entry(window, width=15)
+            entry.insert(0, values)  # Pre-fill with data
+            entry.grid(row=j, column=i, padx=10, pady=2)
+            entry_widgets[(j, i)] = entry  # Map grid coordinates to entry widget
+            j += 1
+        j = 0
+        i += 1
+
+# Function to save updated data
+def saveData():
+    for (row, col), widget in entry_widgets.items():
+        value = widget.get()  # Get the current text in the entry
+        column_name = headers[col - 1]  # Map column index to header
+        row_index = row - 1  # Adjust row index (grid starts from 1)
+        iifIndexed[column_name][row_index] = value  # Update iifIndexed
+    # Update the DataFrame
+    updated_df = pd.DataFrame(iifIndexed)
+    updated_df.to_csv("updated_output.iif", sep='\t', index=False)
+    print("Data saved to 'updated_output.iif'.")
+
+# Button to fill the screen with editable text fields
+selectFile = Button(editIIF, text="Display IIF", command=lambda: iifFill(editIIF, iifIndexed))
+selectFile.grid(row=0, column=0, padx=10, pady=10)
+
+# Button to save the updated data
+saveButton = Button(editIIF, text="Save", command=saveData)
+saveButton.grid(row=1, column=0, padx=10, pady=10)
+
+# Button to quit the program
+quitter = Button(editIIF, text="Quit", command=editIIF.destroy)
+quitter.grid(row=2, column=0, padx=10, pady=10)
+
+if __name__ == "__main__":
+    # Start the GUI
+    editIIF.mainloop()

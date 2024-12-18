@@ -1,0 +1,18 @@
+import tkinter as tk
+
+def create_labels(root, num_labels):
+    """Create and display an arbitrary number of labels."""
+    for i in range(num_labels):
+        label = tk.Label(root, text=f"Label {i + 1}")
+        label.pack()
+
+# Main Tkinter window
+root = tk.Tk()
+root.title("Dynamic Label Creation")
+root.geometry("300x200")
+
+# Button to create labels dynamically
+button = tk.Button(root, text="Create 5 Labels", command=lambda: create_labels(root, 5))
+button.pack(pady=10)
+
+root.mainloop()
